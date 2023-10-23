@@ -3,11 +3,23 @@ import requests
 import pygame  # Requires at least pygame v2.0.0 & updated dependencies: libsdl2-ttf-2.0-0
 from pygame.locals import *
 import platform
+import sys
+
+#for attempts at cronjob - not yet working
+current_directory = os.path.dirname(os.path.realpath(__file__))
+# Set the working directory to the script's directory
+os.chdir(current_directory)
+#print(current_directory)
+parent_directory = os.path.dirname(current_directory)
+#print(parent_directory)
+sys.path.append(parent_directory)  # Add parent directory to sys path to pick up modules
 
 # Check if platform is raspberry pi
 # Load config
 try:
-    if platform.system() == "Linux" and "raspberrypi" in platform.uname().nodename.lower():
+    uname_info = platform.uname()
+#    if platform.system() == "Linux" and "raspberrypi" in platform.uname().nodename.lower():
+    if uname_info.system == "Linux" and "raspberrypi" in uname_info.node.lower():
         print("Platform is Raspberry Pi")
         print("Loading config 'config_pi'")
         from Configs.config_pi import *
@@ -33,11 +45,6 @@ except Exception as e:
 # TODO: separate API calls from pygame display
 # TODO: Fix Font path
 
-#for attempts at cronjob - not yet working
-current_directory = os.path.dirname(os.path.realpath(__file__))
-# Set the working directory to the script's directory
-os.chdir(current_directory)
-
 # Initialize pygame
 pygame.init()
 
@@ -45,7 +52,7 @@ pygame.init()
 screen_info = pygame.display.Info()
 screen_width = screen_info.current_w
 screen_height = screen_info.current_h
-screen = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)  # can use NOFRAME too
+screen = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)  # can use NOFRAME or FULLSCREEN
 
 pygame.display.set_caption("BTC TRACKER")
 
@@ -66,7 +73,7 @@ char_padding_y = 80
 char_spacing = 40
 border_thickness = 1
 
-update_time = 120  # time between main API calls
+update_time = 60  # time between main API calls
 
 # Alpha value for fading block text by decrementing
 alpha = 255
@@ -136,14 +143,25 @@ def draw_text_centered(text, font, color, screen):
         # Define the dimensions of the rectangle
         rect_width, rect_height = char_width + char_padding_x, char_height + char_padding_y  # Add padding around the character
 
+        # 'Hacky' way of aligning box for '1' with other thicker numbers
+        # Alternative is to render each box of fixed size and render text inside each
+        if char == "1":
+            rect_width_new = rect_width + number_padding
+            rect_inner_padding_x_new = rect_inner_padding_x + number_padding
+            char_spacing_new = char_spacing + number_padding
+        else:
+            rect_width_new = rect_width
+            rect_inner_padding_x_new = rect_inner_padding_x
+            char_spacing_new = char_spacing
+
         # Draw the rectangle around the character
-        pygame.draw.rect(screen, gold, (x, y - 50, rect_width, rect_height), border_thickness, 2, 10, 10, 10, 10)  # 2 is the border thickness
+        pygame.draw.rect(screen, gold, (x, y - 50, rect_width_new, rect_height), border_thickness, 2, 10, 10, 10, 10)  # 2 is the border thickness
 
         # Blit the character surface onto the screen
-        screen.blit(char_surface, (x + rect_inner_padding_x, y + rect_inner_padding_y))  # Add padding inside the rectangle
+        screen.blit(char_surface, (x + rect_inner_padding_x_new, y + rect_inner_padding_y))  # Add padding inside the rectangle
 
         # Move the x-coordinate to the right for the next character
-        x += rect_width + char_spacing  # Add spacing between characters
+        x += rect_width + char_spacing_new  # Add spacing between characters
 
     # Update the display
     pygame.display.flip()
@@ -197,35 +215,45 @@ while running:
 
     # Send the GET request
     # Block 840,000 - 3.125 BTC - Expected ~May 2024
-    block_num = requests.get(block_url, headers=blockchain_headers)
+    try:
+        block_num = requests.get(block_url, headers=blockchain_headers)
 
-    if block_num.status_code == 200:
-        block_data = block_num.json()
-        block_height = block_data["height"]
-        print(f"new block height: {block_height}  old block height: {old_block_num}")
-        if block_height != old_block_num:
-            alpha = 255
-            old_block_num = block_height
-            print(f"ADDING NEW BLOCK")
+        if block_num.status_code == 200:
+            block_data = block_num.json()
+            block_height = block_data["height"]
+            print(f"new block height: {block_height}  old block height: {old_block_num}")
+            if block_height != old_block_num:
+                alpha = 255
+                old_block_num = block_height
+                print(f"ADDING NEW BLOCK")
+        else:
+            print("Failed to retrieve block number")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred during the request: {e}")
+
 
     # If time to update, hit API
     if do_request:
         print("Doing update")
-        response = requests.get(price_url, headers=headers, params=params)
+        try:
+            response = requests.get(price_url, headers=headers, params=params)
 
-        # Check if the request was successful
-        if response.status_code == 200:
-            # Parse the JSON response
-            data = response.json()
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Parse the JSON response
+                data = response.json()
 
-            # Access the price in USD
-            price_usd = data["data"]["1"]["quote"]["USD"]["price"]
+                # Access the price in USD
+                price_usd = data["data"]["1"]["quote"]["USD"]["price"]
 
-            # Convert the price to an integer
-            price_integer = int(price_usd)
+                # Convert the price to an integer
+                price_integer = int(price_usd)
 
-        else:
-            print(f"Request failed with status code {response.status_code}")
+            else:
+                print(f"Request failed with status code {response.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred during the request: {e}")
+
 
     print(f"price: {price_integer}")
 

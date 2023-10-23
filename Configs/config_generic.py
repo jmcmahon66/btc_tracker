@@ -10,3 +10,5 @@ start_pos = 260
 frame_rate = 120
 
 block_padding_y = 200
+
+number_padding = 30
