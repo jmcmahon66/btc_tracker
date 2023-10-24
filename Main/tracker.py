@@ -4,6 +4,8 @@ import pygame  # Requires at least pygame v2.0.0 & updated dependencies: libsdl2
 from pygame.locals import *
 import platform
 import sys
+from Configs.api_key import *
+from pi_brightness.pi_brightness import *  # Changes pi screen brightness (looks better lower)
 
 #for attempts at cronjob - not yet working
 current_directory = os.path.dirname(os.path.realpath(__file__))
@@ -18,11 +20,11 @@ sys.path.append(parent_directory)  # Add parent directory to sys path to pick up
 # Load config
 try:
     uname_info = platform.uname()
-#    if platform.system() == "Linux" and "raspberrypi" in platform.uname().nodename.lower():
     if uname_info.system == "Linux" and "raspberrypi" in uname_info.node.lower():
         print("Platform is Raspberry Pi")
         print("Loading config 'config_pi'")
         from Configs.config_pi import *
+        update_brightness(brightness)  # Display looks better when dimmer
     else:
         print("Platform is NOT Raspberry Pi")
         print("Loading config 'config_generic'")
@@ -107,9 +109,11 @@ price_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 usage_url = "https://pro-api.coinmarketcap.com/v1/key/info"
 block_url = "https://blockchain.info/latestblock"
 
+print(f"api_key: {api_key}")
+
 # Define the headers
 headers = {
-    "X-CMC_PRO_API_KEY": "b4de8a18-e523-457a-917b-78f8e6093bd9",
+    "X-CMC_PRO_API_KEY": api_key,
     "Accept": "application/json"
 }
 
@@ -198,7 +202,7 @@ while running:
 
     # Reduce alpha of block text each loop - looks better with higher frame-rate
     print(f"alpha: {alpha}")
-    alpha -= 15
+    alpha -= alpha_decrement
     if alpha < 0:
         alpha = 0
 
@@ -211,7 +215,7 @@ while running:
 #        print(credits_used)
 #        print(monthly_limit)
 
-    block_font = pygame.font.Font(secondary_font, update_size)
+    block_font = pygame.font.Font(secondary_font, block_height_size)
 
     # Send the GET request
     # Block 840,000 - 3.125 BTC - Expected ~May 2024
@@ -253,7 +257,6 @@ while running:
                 print(f"Request failed with status code {response.status_code}")
         except requests.exceptions.RequestException as e:
             print(f"An error occurred during the request: {e}")
-
 
     print(f"price: {price_integer}")
 
