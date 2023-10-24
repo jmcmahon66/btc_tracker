@@ -4,7 +4,6 @@ import pygame  # Requires at least pygame v2.0.0 & updated dependencies: libsdl2
 from pygame.locals import *
 import platform
 import sys
-from Configs.api_key import *
 from pi_brightness.pi_brightness import *  # Changes pi screen brightness (looks better lower)
 
 #for attempts at cronjob - not yet working
@@ -15,6 +14,8 @@ os.chdir(current_directory)
 parent_directory = os.path.dirname(current_directory)
 #print(parent_directory)
 sys.path.append(parent_directory)  # Add parent directory to sys path to pick up modules
+
+from Configs.api_key import *
 
 # Check if platform is raspberry pi
 # Load config

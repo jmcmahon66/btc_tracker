@@ -13,5 +13,5 @@ block_padding_y = 200
 
 number_padding = 30
 
-alpha_decrement = 15
+alpha_decrement = 15  # number the alpha decrements by each cycle
 

@@ -15,4 +15,4 @@ number_padding = 20
 
 brightness = 40  # Brightness at 40% looks best on some rpi screens
 
-alpha_decrement = 15
+alpha_decrement = 15  # number the alpha decrements by each cycle
