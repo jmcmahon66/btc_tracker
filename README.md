@@ -31,9 +31,11 @@ Configuration files can be found in 'Configs/'
 
 'config_pi.py' will be used for Raspberry Pi Platform, these values can be modified but may cause adverse effects
 
-'api_key.py' in Configs/ will store the coinmarketcap API key for obtaining BTC price.
+'update_time = 60' The API call frequency is set to every 60 seconds in the configs, this can be adjusted 
+(Note that 10,000 monthly calls are allowed by coinmarketcap api free tier)
 
-This can be pre-provided in the format:
+'api_key.py' in Configs/ will store the coinmarketcap API key for obtaining BTC price,
+this can be pre-provided in the format:
 ```python
 api_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
