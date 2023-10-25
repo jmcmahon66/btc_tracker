@@ -29,23 +29,12 @@ try:
     else:
         print("Platform is NOT Raspberry Pi")
         print("Loading config 'config_generic'")
-        # TODO: Load other platform config (full-screen)
         from Configs.config_generic import *
 except Exception as e:
     print("Could not determine platform", e)
     print("Loading config 'config_generic'")
     from Configs.config_generic import *
-    # TODO: Load other platform config (full-screen)
 
-#xdg_runtime_dir = os.environ.get('XDG_RUNTIME_DIR')
-#print(xdg_runtime_dir)
-
-# Set XDG_RUNTIME_DIR if not already set for sudo cron
-#if 'XDG_RUNTIME_DIR' not in os.environ:
-#    os.environ['XDG_RUNTIME_DIR'] = str(xdg_runtime_dir)
-
-# TODO: Pass in API key
-# TODO: separate API calls from pygame display
 # TODO: Fix Font path
 
 # Initialize pygame
@@ -75,8 +64,6 @@ char_padding_x = 70
 char_padding_y = 80
 char_spacing = 40
 border_thickness = 1
-
-update_time = 60  # time between main API calls
 
 # Alpha value for fading block text by decrementing
 alpha = 255

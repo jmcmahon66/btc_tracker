@@ -2,6 +2,8 @@
 
 display_mode = "NOFRAME" # enum for pygame
 
+update_time = 60  # time between main API calls
+
 # Font sizes
 price_size = 180
 block_height_size = 100
